@@ -6,7 +6,7 @@ from logging import Logger, getLogger
 DOMAIN = "rabot_energy"
 LOGGER: Logger = getLogger(__package__)
 
-CONF_CONTRACT_ID = "contract_id"
+CONF_CONTRACT_NUMBER = "contract_number"
 
 # The preview covers up to 72 hours and changes rarely, so polling often is wasteful.
 UPDATE_INTERVAL = timedelta(minutes=30)

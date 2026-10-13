@@ -2,7 +2,7 @@
 
 Shows your Rabot Energy electricity price preview (up to 72 hours ahead) in Home Assistant, for
 one contract per entry. Early scaffold built on the service endpoint
-`GET /api/home-assistant-service/v1/energy-prices/average?contractId=...` (see "Known gaps").
+`GET /api/home-assistant-service/v1/energy-prices/average?contractNumber=...` (see "Known gaps").
 
 ## What you get
 
@@ -62,7 +62,7 @@ If the token is revoked or expires, Home Assistant asks for a new one (reauthent
   gross / 1.19. The "Current price (net)" sensor may mislead until this is clarified.
 - `priceCap` (null in the samples) and the base provider working price are parsed by the library but
   not exposed as sensors yet.
-- The contract ID is a UUID; the config flow does not validate that format yet.
+- The contract number format is not validated by the config flow.
 - Prices are assumed to be in EUR (the schema only says cent).
 - The library is bundled under `_lib` because `rabot-energy` is not on PyPI yet. Before a Home
   Assistant Core submission it must be published and this copy removed.

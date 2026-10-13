@@ -91,10 +91,10 @@ class RabotPriceSensor(CoordinatorEntity[RabotCoordinator], SensorEntity):
         """Initialize the sensor."""
         super().__init__(coordinator)
         self.entity_description = description
-        self._attr_unique_id = f"{coordinator.contract_id}_{description.key}"
+        self._attr_unique_id = f"{coordinator.contract_number}_{description.key}"
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, coordinator.contract_id)},
-            name=f"Rabot {coordinator.contract_id}",
+            identifiers={(DOMAIN, coordinator.contract_number)},
+            name=f"Rabot {coordinator.contract_number}",
             manufacturer="Rabot Energy",
             entry_type=DeviceEntryType.SERVICE,
         )

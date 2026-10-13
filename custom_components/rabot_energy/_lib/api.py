@@ -30,9 +30,11 @@ class RabotEnergyApi:
         """Store the auth object used for all requests."""
         self._auth = auth
 
-    async def async_get_price_preview(self, contract_id: str) -> PricePreview:
+    async def async_get_price_preview(self, contract_number: str) -> PricePreview:
         """Return the price preview (up to 72 hours) for a contract."""
-        response = await self._auth.request("get", PRICES_PATH, params={"contractId": contract_id})
+        response = await self._auth.request(
+            "get", PRICES_PATH, params={"contractNumber": contract_number}
+        )
         try:
             self._raise_for_status(response)
             try:

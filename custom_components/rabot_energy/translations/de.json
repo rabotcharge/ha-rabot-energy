@@ -6,18 +6,18 @@
         "description": "Gib die Adresse des Rabot-Dienstes, deine Vertragsnummer und – falls der Dienst eines verlangt – ein Zugriffstoken ein.",
         "data": {
           "host": "Serveradresse",
-          "contract_id": "Vertragsnummer",
+          "contract_number": "Vertragsnummer",
           "api_token": "Zugriffstoken (optional)"
         },
         "data_description": {
-          "host": "Basis-URL mit http:// oder https://, zum Beispiel http://10.0.0.5:8012. Lässt sich später mit „Neu konfigurieren“ ändern.",
-          "contract_id": "Die Vertragsnummer aus der Rabot-App.",
+          "host": "Serveradresse mit Schema (http oder https) und Port. Lässt sich später mit „Neu konfigurieren“ ändern.",
+          "contract_number": "Die Vertragsnummer aus der Rabot-App.",
           "api_token": "Ein langlebiges Token aus der Rabot-App. Leer lassen, wenn der Server keines braucht."
         }
       },
       "reauth_confirm": {
         "title": "Rabot-Token erneuern",
-        "description": "Das Token für Vertrag {contract_id} wurde abgelehnt. Gib ein neues Token aus der Rabot-App ein.",
+        "description": "Das Token für Vertrag {contract_number} wurde abgelehnt. Gib ein neues Token aus der Rabot-App ein.",
         "data": {
           "api_token": "Zugriffstoken"
         },
@@ -27,13 +27,13 @@
       },
       "reconfigure": {
         "title": "Rabot-Server ändern",
-        "description": "Ändere die Serveradresse für Vertrag {contract_id}. Lass das Token leer, um das aktuelle zu behalten.",
+        "description": "Ändere die Serveradresse für Vertrag {contract_number}. Lass das Token leer, um das aktuelle zu behalten.",
         "data": {
           "host": "Serveradresse",
           "api_token": "Zugriffstoken (optional)"
         },
         "data_description": {
-          "host": "Basis-URL mit http:// oder https://, zum Beispiel https://example.org.",
+          "host": "Serveradresse mit Schema (http oder https) und bei Bedarf Port.",
           "api_token": "Nur nötig, um das gespeicherte Token zu ersetzen."
         }
       }
@@ -43,7 +43,7 @@
       "invalid_auth": "Das Token wurde abgelehnt. Prüfe, ob du es vollständig kopiert hast.",
       "contract_not_found": "Der Server hat diesen Vertrag nicht gefunden. Prüfe Vertragsnummer und Serveradresse.",
       "unknown": "Unerwarteter Fehler. Prüfe die Protokolle.",
-      "invalid_host": "Gib eine vollständige Adresse ein, die mit http:// oder https:// beginnt."
+      "invalid_host": "Gib eine vollständige Adresse ein, die mit dem Schema (http oder https) beginnt."
     },
     "abort": {
       "already_configured": "Dieser Vertrag ist bereits eingerichtet.",

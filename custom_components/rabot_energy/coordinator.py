@@ -15,7 +15,7 @@ from ._lib import (
     RabotEnergyApi,
     RabotRateLimitError,
 )
-from .const import CONF_CONTRACT_ID, DOMAIN, LOGGER, UPDATE_INTERVAL
+from .const import CONF_CONTRACT_NUMBER, DOMAIN, LOGGER, UPDATE_INTERVAL
 from .prices import PriceSlot, parse_slots
 
 type RabotConfigEntry = ConfigEntry[RabotCoordinator]
@@ -36,12 +36,12 @@ class RabotCoordinator(DataUpdateCoordinator[list[PriceSlot]]):
             update_interval=UPDATE_INTERVAL,
         )
         self._api = api
-        self.contract_id: str = entry.data[CONF_CONTRACT_ID]
+        self.contract_number: str = entry.data[CONF_CONTRACT_NUMBER]
 
     async def _async_update_data(self) -> list[PriceSlot]:
         """Fetch and parse the preview."""
         try:
-            preview = await self._api.async_get_price_preview(self.contract_id)
+            preview = await self._api.async_get_price_preview(self.contract_number)
             return parse_slots(preview)
         except RabotAuthError as err:
             raise ConfigEntryAuthFailed("The Rabot token was rejected") from err
