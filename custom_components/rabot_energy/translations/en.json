@@ -1,0 +1,73 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect your Rabot contract",
+        "description": "Enter the address of the Rabot service, your contract number and, if the service needs one, an access token.",
+        "data": {
+          "host": "Server address",
+          "contract_id": "Contract number",
+          "api_token": "Access token (optional)"
+        },
+        "data_description": {
+          "host": "Base URL including http:// or https://, for example http://10.0.0.5:8012. It can be changed later with Reconfigure.",
+          "contract_id": "The contract number shown in the Rabot app.",
+          "api_token": "A long-lived token created in the Rabot app. Leave empty if the server needs none."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Rabot token needs renewal",
+        "description": "The token for contract {contract_id} was rejected. Enter a new token from the Rabot app.",
+        "data": {
+          "api_token": "Access token"
+        },
+        "data_description": {
+          "api_token": "A new long-lived token created in the Rabot app."
+        }
+      },
+      "reconfigure": {
+        "title": "Change the Rabot server",
+        "description": "Change the server address for contract {contract_id}. Leave the token empty to keep the current one.",
+        "data": {
+          "host": "Server address",
+          "api_token": "Access token (optional)"
+        },
+        "data_description": {
+          "host": "Base URL including http:// or https://, for example https://example.org.",
+          "api_token": "Only needed to replace the stored token."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not reach the server. Check the address and your network connection.",
+      "invalid_auth": "The token was rejected. Check that you copied it completely.",
+      "contract_not_found": "The server did not find this contract. Check the contract number and the server address.",
+      "unknown": "Unexpected error. Check the logs.",
+      "invalid_host": "Enter a full address starting with http:// or https://."
+    },
+    "abort": {
+      "already_configured": "This contract is already set up.",
+      "reauth_successful": "The token was updated.",
+      "reconfigure_successful": "The server settings were updated."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "current_price": {
+        "name": "Current price"
+      },
+      "current_price_net": {
+        "name": "Current price (net)"
+      },
+      "next_price": {
+        "name": "Next price"
+      },
+      "lowest_price": {
+        "name": "Lowest upcoming price"
+      },
+      "highest_price": {
+        "name": "Highest upcoming price"
+      }
+    }
+  }
+}

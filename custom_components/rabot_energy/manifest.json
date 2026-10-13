@@ -1,0 +1,15 @@
+{
+  "domain": "rabot_energy",
+  "name": "Rabot Energy",
+  "codeowners": [],
+  "config_flow": true,
+  "documentation": "https://github.com/rabotcharge/ha-rabot-energy",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/rabotcharge/ha-rabot-energy/issues",
+  "loggers": [
+    "rabot_energy"
+  ],
+  "requirements": [],
+  "version": "0.2.0"
+}

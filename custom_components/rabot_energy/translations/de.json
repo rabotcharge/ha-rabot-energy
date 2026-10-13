@@ -1,0 +1,73 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Rabot-Vertrag verbinden",
+        "description": "Gib die Adresse des Rabot-Dienstes, deine Vertragsnummer und – falls der Dienst eines verlangt – ein Zugriffstoken ein.",
+        "data": {
+          "host": "Serveradresse",
+          "contract_id": "Vertragsnummer",
+          "api_token": "Zugriffstoken (optional)"
+        },
+        "data_description": {
+          "host": "Basis-URL mit http:// oder https://, zum Beispiel http://10.0.0.5:8012. Lässt sich später mit „Neu konfigurieren“ ändern.",
+          "contract_id": "Die Vertragsnummer aus der Rabot-App.",
+          "api_token": "Ein langlebiges Token aus der Rabot-App. Leer lassen, wenn der Server keines braucht."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Rabot-Token erneuern",
+        "description": "Das Token für Vertrag {contract_id} wurde abgelehnt. Gib ein neues Token aus der Rabot-App ein.",
+        "data": {
+          "api_token": "Zugriffstoken"
+        },
+        "data_description": {
+          "api_token": "Ein neues langlebiges Token aus der Rabot-App."
+        }
+      },
+      "reconfigure": {
+        "title": "Rabot-Server ändern",
+        "description": "Ändere die Serveradresse für Vertrag {contract_id}. Lass das Token leer, um das aktuelle zu behalten.",
+        "data": {
+          "host": "Serveradresse",
+          "api_token": "Zugriffstoken (optional)"
+        },
+        "data_description": {
+          "host": "Basis-URL mit http:// oder https://, zum Beispiel https://example.org.",
+          "api_token": "Nur nötig, um das gespeicherte Token zu ersetzen."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Der Server ist nicht erreichbar. Prüfe die Adresse und deine Netzwerkverbindung.",
+      "invalid_auth": "Das Token wurde abgelehnt. Prüfe, ob du es vollständig kopiert hast.",
+      "contract_not_found": "Der Server hat diesen Vertrag nicht gefunden. Prüfe Vertragsnummer und Serveradresse.",
+      "unknown": "Unerwarteter Fehler. Prüfe die Protokolle.",
+      "invalid_host": "Gib eine vollständige Adresse ein, die mit http:// oder https:// beginnt."
+    },
+    "abort": {
+      "already_configured": "Dieser Vertrag ist bereits eingerichtet.",
+      "reauth_successful": "Das Token wurde aktualisiert.",
+      "reconfigure_successful": "Die Servereinstellungen wurden aktualisiert."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "current_price": {
+        "name": "Aktueller Preis"
+      },
+      "current_price_net": {
+        "name": "Aktueller Preis (netto)"
+      },
+      "next_price": {
+        "name": "Nächster Preis"
+      },
+      "lowest_price": {
+        "name": "Niedrigster kommender Preis"
+      },
+      "highest_price": {
+        "name": "Höchster kommender Preis"
+      }
+    }
+  }
+}

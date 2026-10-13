@@ -1,0 +1,6 @@
+{
+  "name": "Rabot Energy",
+  "homeassistant": "2026.3.0",
+  "country": ["DE"],
+  "render_readme": true
+}

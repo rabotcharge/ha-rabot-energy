@@ -1,0 +1,6 @@
+line-length = 100
+extend-exclude = ["custom_components/rabot_energy/_lib"]
+target-version = "py313"
+
+[lint]
+select = ["E", "F", "I", "UP", "B"]
