@@ -1,6 +1,6 @@
 """Data models.
 
-They mirror the API response (GET .../energy-prices/average?contractId=...) and do no
+They mirror the API response (GET .../energy-prices/average?contractNumber=...) and do no
 conversion: the moment stays a string (for example "2026-10-13 07:30") and prices stay
 in cent per kWh, exactly as sent. Time zones, slot lengths and unit changes are the
 integration's job.

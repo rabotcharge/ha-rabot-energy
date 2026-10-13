@@ -7,7 +7,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from ._lib import Auth, RabotEnergyApi
-from .const import LEGACY_HOST
+from .const import CONF_CONTRACT_NUMBER, LEGACY_HOST
 from .coordinator import RabotConfigEntry, RabotCoordinator
 
 PLATFORMS: list[Platform] = [Platform.SENSOR]
@@ -34,9 +34,16 @@ async def async_unload_entry(hass: HomeAssistant, entry: RabotConfigEntry) -> bo
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: RabotConfigEntry) -> bool:
-    """Migrate an entry from before the server address was a setting."""
+    """Migrate older entries (1: no server address, 2: setting called contract_id)."""
     if entry.version == 1:
         hass.config_entries.async_update_entry(
             entry, data={**entry.data, CONF_HOST: LEGACY_HOST}, version=2
         )
+    if entry.version == 2:
+        # The service now identifies a contract by its number. An old value (a contract ID)
+        # is kept so the entry still loads; it must be replaced by re-adding the entry.
+        data = dict(entry.data)
+        if "contract_id" in data:
+            data[CONF_CONTRACT_NUMBER] = data.pop("contract_id")
+        hass.config_entries.async_update_entry(entry, data=data, version=3)
     return True
