@@ -56,9 +56,6 @@
       "current_price": {
         "name": "Aktueller Preis"
       },
-      "current_price_net": {
-        "name": "Aktueller Preis (netto)"
-      },
       "next_price": {
         "name": "Nächster Preis"
       },

@@ -56,9 +56,6 @@
       "current_price": {
         "name": "Current price"
       },
-      "current_price_net": {
-        "name": "Current price (net)"
-      },
       "next_price": {
         "name": "Next price"
       },
