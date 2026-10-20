@@ -14,6 +14,7 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.const import CURRENCY_EURO, UnitOfEnergy
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.event import async_track_time_change
@@ -41,7 +42,6 @@ class RabotSensorDescription(SensorEntityDescription):
     """Describe a price sensor."""
 
     slot_fn: Callable[[list[PriceSlot], datetime], PriceSlot | None]
-    net: bool = False
     with_period: bool = False
     with_prices: bool = False
 
@@ -52,9 +52,6 @@ SENSORS: tuple[RabotSensorDescription, ...] = (
         translation_key="current_price",
         slot_fn=current_slot,
         with_prices=True,
-    ),
-    RabotSensorDescription(
-        key="current_price_net", translation_key="current_price_net", slot_fn=current_slot, net=True
     ),
     RabotSensorDescription(key="next_price", translation_key="next_price", slot_fn=next_slot),
     RabotSensorDescription(
@@ -73,6 +70,12 @@ async def async_setup_entry(
 ) -> None:
     """Set up the price sensors."""
     coordinator = entry.runtime_data
+    # The API dropped the net price in 0.4.0; remove the sensor left over from older versions.
+    registry = er.async_get(hass)
+    if stale := registry.async_get_entity_id(
+        "sensor", DOMAIN, f"{coordinator.contract_number}_current_price_net"
+    ):
+        registry.async_remove(stale)
     async_add_entities(RabotPriceSensor(coordinator, description) for description in SENSORS)
 
 
@@ -123,7 +126,7 @@ class RabotPriceSensor(CoordinatorEntity[RabotCoordinator], SensorEntity):
         slot = self._slot()
         if slot is None:
             return None
-        return slot.net if self.entity_description.net else slot.gross
+        return slot.gross
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:

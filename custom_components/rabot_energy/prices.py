@@ -30,7 +30,6 @@ class PriceSlot:
     start: datetime
     end: datetime
     gross: float
-    net: float | None
 
 
 def _parse_moment(value: str) -> datetime:
@@ -67,13 +66,11 @@ def parse_slots(preview: PricePreview) -> list[PriceSlot]:
             end = start + (slots[-1].end - slots[-1].start)
         else:
             end = start + FALLBACK_SLOT_LENGTH
-        net_cent = record.price_net_in_cent_per_kwh
         slots.append(
             PriceSlot(
                 start=start,
                 end=end,
                 gross=record.price_gross_in_cent_per_kwh / 100,
-                net=None if net_cent is None else net_cent / 100,
             )
         )
     return slots

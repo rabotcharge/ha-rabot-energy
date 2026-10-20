@@ -36,11 +36,6 @@ class PriceRecord:
         """Return the gross price in cent per kWh."""
         return float(self.raw_data["priceGross_inCentPerKwh"]["value"])
 
-    @property
-    def price_net_in_cent_per_kwh(self) -> float | None:
-        """Return the net price in cent per kWh, if sent."""
-        return _value(self.raw_data, "priceNet_inCentPerKwh")
-
 
 class PricePreview:
     """The price preview for one contract (up to 72 hours)."""

@@ -18,12 +18,8 @@ sys.modules["rabot_prices"] = prices  # dataclasses need the module registered
 _spec.loader.exec_module(prices)
 
 
-def _record(moment: str, gross_cent: float, net_cent: float | None = None) -> SimpleNamespace:
-    return SimpleNamespace(
-        moment=moment,
-        price_gross_in_cent_per_kwh=gross_cent,
-        price_net_in_cent_per_kwh=net_cent,
-    )
+def _record(moment: str, gross_cent: float) -> SimpleNamespace:
+    return SimpleNamespace(moment=moment, price_gross_in_cent_per_kwh=gross_cent)
 
 
 def _preview(*records: SimpleNamespace) -> SimpleNamespace:
@@ -37,9 +33,9 @@ def at(hour: int, minute: int = 0, second: int = 0) -> datetime:
 
 # hourly, deliberately out of order; the API sends UTC with milliseconds
 PREVIEW = _preview(
-    _record("2026-10-12T09:00:00.000Z", 27.5, 23.11),
-    _record("2026-10-12T08:00:00.000Z", 30.0, 25.2),
-    _record("2026-10-12T10:00:00.000Z", 24.0, 20.25),
+    _record("2026-10-12T09:00:00.000Z", 27.5),
+    _record("2026-10-12T08:00:00.000Z", 30.0),
+    _record("2026-10-12T10:00:00.000Z", 24.0),
 )
 
 
@@ -48,13 +44,11 @@ def test_parse_sorts_converts_units_and_derives_ends() -> None:
     assert [s.start for s in slots] == [at(8), at(9), at(10)]
     assert [s.end for s in slots] == [at(9), at(10), at(11)]  # last copies the spacing
     assert slots[0].gross == pytest.approx(0.30)  # 30.0 ct/kWh -> 0.30 EUR/kWh
-    assert slots[0].net == pytest.approx(0.252)
 
 
-def test_parse_handles_fractional_seconds_and_missing_net() -> None:
+def test_parse_handles_fractional_seconds() -> None:
     slots = prices.parse_slots(_preview(_record("2026-10-12T10:28:00.269Z", 20.0)))
     assert slots[0].start == datetime(2026, 10, 12, 10, 28, 0, 269000, tzinfo=UTC)
-    assert slots[0].net is None
     assert slots[0].end - slots[0].start == prices.FALLBACK_SLOT_LENGTH  # single record
 
 

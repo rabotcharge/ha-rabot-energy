@@ -11,12 +11,11 @@ One device per contract with these sensors (unit `EUR/kWh`):
 | Sensor | Meaning |
 | --- | --- |
 | Current price | Gross price of the slot that contains "now" |
-| Current price (net) | Net price of the current slot, when the API sends it |
 | Next price | Gross price of the next slot |
 | Lowest upcoming price | Cheapest current-or-later slot; attributes `start`, `end` |
 | Highest upcoming price | Most expensive current-or-later slot; attributes `start`, `end` |
 
-The API sends prices in cent per kWh with one `moment` per record; the integration converts them to
+The API sends gross prices only, in cent per kWh, with one `moment` per record; the integration converts them to
 EUR/kWh and derives each slot's end from the next record. The current price follows the slot
 boundaries from cached data, without another API call. The service is polled every 30 minutes.
 
@@ -58,8 +57,6 @@ If the token is revoked or expires, Home Assistant asks for a new one (reauthent
   backend team; the only place to change is `_parse_moment` in `prices.py`.
 - The sample request sends no token, so the token is optional. Bearer auth was confirmed against the
   earlier test API only. The public service will probably need a token.
-- It is unclear what "net" means: net was about 17 ct while gross was about 41.5 ct, far below
-  gross / 1.19. The "Current price (net)" sensor may mislead until this is clarified.
 - `priceCap` (null in the samples) and the base provider working price are parsed by the library but
   not exposed as sensors yet.
 - The contract number format is not validated by the config flow.
