@@ -18,7 +18,7 @@ sys.modules["rabot_prices"] = prices  # dataclasses need the module registered
 _spec.loader.exec_module(prices)
 
 
-def _record(moment: str, gross_cent: float) -> SimpleNamespace:
+def _record(moment: str, gross_cent: float | None) -> SimpleNamespace:
     return SimpleNamespace(moment=moment, price_gross_in_cent_per_kwh=gross_cent)
 
 
@@ -49,7 +49,38 @@ def test_parse_sorts_converts_units_and_derives_ends() -> None:
 def test_parse_handles_fractional_seconds() -> None:
     slots = prices.parse_slots(_preview(_record("2026-10-12T10:28:00.269Z", 20.0)))
     assert slots[0].start == datetime(2026, 10, 12, 10, 28, 0, 269000, tzinfo=UTC)
-    assert slots[0].end - slots[0].start == prices.FALLBACK_SLOT_LENGTH  # single record
+    assert slots[0].end - slots[0].start == timedelta(minutes=15)  # single record: fallback
+
+
+def test_fallback_slot_length_is_a_quarter_hour() -> None:
+    assert prices.FALLBACK_SLOT_LENGTH == timedelta(minutes=15)
+
+
+def test_parse_skips_records_without_a_price_and_leaves_a_gap() -> None:
+    slots = prices.parse_slots(
+        _preview(
+            _record("2026-10-12T10:00:00Z", 20.0),
+            _record("2026-10-12T10:15:00Z", None),
+            _record("2026-10-12T10:30:00Z", 22.0),
+        )
+    )
+    assert [s.start for s in slots] == [at(10), at(10, 30)]
+    # the null record still ends the slot before it, so 10:15-10:30 has no price
+    assert slots[0].end == at(10, 15)
+    assert slots[1].end == at(10, 45)
+    assert prices.current_slot(slots, at(10, 20)) is None
+
+
+def test_parse_last_record_without_a_price() -> None:
+    slots = prices.parse_slots(
+        _preview(_record("2026-10-12T10:00:00Z", 20.0), _record("2026-10-12T10:15:00Z", None))
+    )
+    assert len(slots) == 1
+    assert slots[0].end == at(10, 15)
+
+
+def test_parse_only_null_prices() -> None:
+    assert prices.parse_slots(_preview(_record("2026-10-12T10:00:00Z", None))) == []
 
 
 def test_parse_quarter_hour_spacing_is_kept() -> None:

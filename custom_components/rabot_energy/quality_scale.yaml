@@ -43,7 +43,7 @@ rules:
 
   # Gold
   devices: done
-  diagnostics: todo
+  diagnostics: done
   discovery-update-info:
     status: exempt
     comment: Cloud service, nothing to discover.
@@ -64,7 +64,7 @@ rules:
   entity-device-class:
     status: exempt
     comment: Per-kWh prices have no suitable device class (monetary does not allow measurement).
-  entity-disabled-by-default: todo
+  entity-disabled-by-default: done
   entity-translations: done
   exception-translations: todo
   icon-translations: todo

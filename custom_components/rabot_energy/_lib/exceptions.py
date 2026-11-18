@@ -12,7 +12,7 @@ class RabotConnectionError(RabotError):
 
 
 class RabotAuthError(RabotError):
-    """The token was rejected (HTTP 401 or 403)."""
+    """The token was rejected: invalid, expired, revoked or not for this contract (HTTP 401/403)."""
 
 
 class RabotContractNotFoundError(RabotError):
@@ -26,6 +26,10 @@ class RabotRateLimitError(RabotError):
         """Store the number of seconds to wait, when the service sent it."""
         super().__init__(message)
         self.retry_after = retry_after
+
+
+class RabotServiceUnavailableError(RabotError):
+    """Prices are temporarily unavailable (HTTP 503); retry later."""
 
 
 class RabotApiError(RabotError):

@@ -11,6 +11,7 @@ from .exceptions import (
     RabotAuthError,
     RabotContractNotFoundError,
     RabotRateLimitError,
+    RabotServiceUnavailableError,
 )
 from .models import PricePreview
 
@@ -21,6 +22,21 @@ def _retry_after(response: ClientResponse) -> int | None:
     if value is not None and value.isdigit():
         return int(value)
     return None
+
+
+async def _problem(response: ClientResponse) -> str:
+    """Return " (<title>: <detail>)" from an RFC 9457 ProblemDetails body, or "".
+
+    Error bodies are optional and may be empty or not JSON, so this never raises.
+    """
+    try:
+        data = await response.json(content_type=None)
+    except (ClientError, ValueError):
+        return ""
+    if not isinstance(data, dict):
+        return ""
+    parts = [str(data[key]) for key in ("title", "detail") if data.get(key)]
+    return f" ({': '.join(parts)})" if parts else ""
 
 
 class RabotEnergyApi:
@@ -36,7 +52,7 @@ class RabotEnergyApi:
             "get", PRICES_PATH, params={"contractNumber": contract_number}
         )
         try:
-            self._raise_for_status(response)
+            await self._raise_for_status(response)
             try:
                 data = await response.json()
             except (ClientError, ValueError) as err:
@@ -48,15 +64,20 @@ class RabotEnergyApi:
         return PricePreview(data)
 
     @staticmethod
-    def _raise_for_status(response: ClientResponse) -> None:
+    async def _raise_for_status(response: ClientResponse) -> None:
         """Map HTTP status codes to typed exceptions."""
         status = response.status
         if status < 400:
             return
+        problem = await _problem(response)
+        # 403 is not documented; treated like 401 to be safe.
         if status in (401, 403):
-            raise RabotAuthError("The token was rejected")
+            raise RabotAuthError(f"The token was rejected{problem}")
         if status == 404:
-            raise RabotContractNotFoundError("Contract not found")
+            raise RabotContractNotFoundError(f"Contract not found{problem}")
+        # 429 is not documented; handled defensively.
         if status == 429:
-            raise RabotRateLimitError("Rate limited", _retry_after(response))
-        raise RabotApiError(f"Service returned HTTP {status}", status)
+            raise RabotRateLimitError(f"Rate limited{problem}", _retry_after(response))
+        if status == 503:
+            raise RabotServiceUnavailableError(f"Prices are temporarily unavailable{problem}")
+        raise RabotApiError(f"Service returned HTTP {status}{problem}", status)
