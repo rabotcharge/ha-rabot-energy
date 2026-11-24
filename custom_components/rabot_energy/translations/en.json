@@ -56,7 +56,8 @@
       "invalid_host": "Enter a full address that starts with the scheme (http or https).",
       "invalid_token": "This is not a valid token. Copy the complete token from the Rabot app.",
       "service_unavailable": "Rabot prices are temporarily unavailable. Try again later.",
-      "contract_number_required": "Enter the contract number shown next to the token in the Rabot app."
+      "contract_number_required": "Enter the contract number shown next to the token in the Rabot app.",
+      "token_other_contract": "This token belongs to another contract, or contract {contract_number} no longer exists. Create a token for contract {contract_number} in the Rabot app."
     },
     "abort": {
       "already_configured": "This contract is already set up.",
