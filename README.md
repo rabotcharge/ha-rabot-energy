@@ -31,8 +31,9 @@ the slot boundaries from cached data, without another API call. The service is p
 You need:
 
 - **Home Assistant 2026.3.0 or newer.**
-- **HACS** installed ([hacs.xyz/docs/use](https://hacs.xyz/docs/use/)), or access to the
-  `config` folder for a manual install.
+- To install: the **Marketplace** (built into Home Assistant 2026.11 and newer, under Settings >
+  Marketplace), or **HACS** on older versions ([hacs.xyz/docs/use](https://hacs.xyz/docs/use/)), or
+  access to the `config` folder for a manual install.
 - The **Rabot app**, updated to the latest version.
 - Your **contract number** and an **access token**, both from **Services > Home Assistant
   Integration** in the Rabot app (see the next step).
@@ -54,7 +55,21 @@ Good to know:
 
 ### 3. Install the integration
 
-**With HACS (recommended)**
+**With the Marketplace (Home Assistant 2026.11 and newer, recommended)**
+
+**[Open Rabot Energy in the Marketplace](https://my.home-assistant.io/redirect/marketplace_repository/?owner=rabotcharge&repository=ha-rabot-energy&category=integration)**
+
+Or by hand:
+
+1. Settings > **Marketplace**. On the first visit, read and accept the notice about community
+   content.
+2. *Add from link* > enter `rabotcharge/ha-rabot-energy` > *Add*. Adding a repository by link needs
+   a GitHub connection; the Marketplace asks you to sign in with GitHub (no access to your private
+   repositories or write access is requested).
+3. Open **Rabot Energy** > *Install*.
+4. Restart Home Assistant when the Marketplace asks for it.
+
+**With HACS (Home Assistant before 2026.11)**
 
 [![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=rabotcharge&repository=ha-rabot-energy&category=integration)
 
@@ -64,6 +79,9 @@ Or by hand:
 2. Repository `https://github.com/rabotcharge/ha-rabot-energy`, type *Integration* > *Add*.
 3. Search HACS for **Rabot Energy** > *Download*.
 4. Restart Home Assistant (Settings > System > three-dot menu > *Restart Home Assistant*).
+
+If you installed with HACS and then update Home Assistant to 2026.11 or newer, the integration
+moves to the Marketplace by itself.
 
 **Manually**
 
@@ -112,10 +130,11 @@ with current price* > pick the *Current price* sensor.
   and paste it. Tokens expire after one year.
 - **Other token or server:** Settings > Devices & services > Rabot Energy > three-dot menu of the
   entry > *Reconfigure*. An empty token field keeps the stored token. No need to delete the entry.
-- **Update:** HACS shows new versions; download and restart Home Assistant. Entries set up without
-  a token by an older version ask for one after the update.
-- **Remove:** delete the entry in Settings > Devices & services, then remove the integration in
-  HACS and restart. Delete the token in the app as well.
+- **Update:** new versions appear under Settings > Updates (Marketplace) or in HACS; install and
+  restart Home Assistant. Entries set up without a token by an older version ask for one after the
+  update.
+- **Remove:** delete the entry in Settings > Devices & services, then uninstall the integration in
+  the Marketplace (or HACS) and restart. Delete the token in the app as well.
 
 ## Show the prices in a chart
 
@@ -126,9 +145,12 @@ with a `data_generator`.
 
 ### 1. Install ApexCharts Card
 
-1. HACS > Frontend > search for **ApexCharts Card** > Download.
-2. If HACS does not add the resource itself: Settings > Dashboards > three-dot menu > Resources >
-   Add resource, URL `/hacsfiles/apexcharts-card/apexcharts-card.js`, type *JavaScript module*.
+1. Settings > Marketplace > search for **ApexCharts Card** > *Install* (with HACS: HACS > Frontend
+   > search for **ApexCharts Card** > Download).
+2. The resource is added for you. Only if you manage dashboard resources in YAML, add it yourself
+   (Settings > Dashboards > three-dot menu > Resources > Add resource, type *JavaScript module*):
+   URL `/local/community/apexcharts-card/apexcharts-card.js` when installed with the Marketplace,
+   or `/hacsfiles/apexcharts-card/apexcharts-card.js` when installed with HACS.
 3. Reload the browser page (hard refresh, or clear the app cache in the companion app).
 
 ### 2. Find your entity ID
@@ -227,7 +249,7 @@ And a horizontal line, for example at 40 ct, next to `xaxis` under `apex_config`
 
 | Problem | Fix |
 | --- | --- |
-| "Custom element doesn't exist: apexcharts-card" | The resource is missing (step 1.2) or the page is cached; hard refresh. |
+| "Custom element doesn't exist: apexcharts-card" | The card is not installed, the resource is missing (step 1.2) or the page is cached; hard refresh. |
 | Card shows an error about `entity.attributes.prices` | Wrong entity ID, or the attribute is not there yet (step 2). Use the *Current price* sensor, not *Next price*. |
 | Chart is empty, header shows a price | The price list is empty or the time range does not match; use `graph_span: 48h` with `span.start: day`. |
 | Curve is shifted by an hour or two | Keep `datetimeUTC: false` under `xaxis.labels`; the times are converted to your browser time zone. |

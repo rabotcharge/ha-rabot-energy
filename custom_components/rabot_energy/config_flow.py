@@ -70,11 +70,16 @@ async def _async_fetch(
         return None, "unknown"
 
 
-async def _async_validate(
+async def _async_validate_stored(
     hass: HomeAssistant, host: str, contract_number: str, token: str
 ) -> str | None:
-    """Try one request; return an error key, or None when the settings work."""
-    return (await _async_fetch(hass, host, contract_number, token))[1]
+    """Check a token against an entry's stored contract; return an error key or None.
+
+    There is no contract number field here, so a 404 means the token belongs to
+    another contract (or the contract is gone), not a mistyped number.
+    """
+    error = (await _async_fetch(hass, host, contract_number, token))[1]
+    return "token_other_contract" if error == "contract_not_found" else error
 
 
 class RabotConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -149,7 +154,7 @@ class RabotConfigFlow(ConfigFlow, domain=DOMAIN):
             elif not token:
                 errors[CONF_API_TOKEN] = "invalid_token"
             elif (
-                error := await _async_validate(
+                error := await _async_validate_stored(
                     self.hass, host, entry.data[CONF_CONTRACT_NUMBER], token
                 )
             ) is None:
@@ -189,7 +194,7 @@ class RabotConfigFlow(ConfigFlow, domain=DOMAIN):
             if token is None:
                 errors[CONF_API_TOKEN] = "invalid_token"
             elif (
-                error := await _async_validate(
+                error := await _async_validate_stored(
                     self.hass, entry.data[CONF_HOST], entry.data[CONF_CONTRACT_NUMBER], token
                 )
             ) is None:
