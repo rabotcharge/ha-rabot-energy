@@ -50,7 +50,7 @@ Good to know:
 - A token is valid for **one year**. Plan to create a new one before it expires.
 - A contract can have up to **five** active tokens, for example one per Home Assistant instance.
 - Deleting a token in the app stops Home Assistant's access immediately.
-- A token works only for the contract it was created for.
+- A token works only for the contract it was created for, and identifies that contract on its own.
 
 ### 3. Install the integration
 
@@ -79,12 +79,12 @@ Or: Settings > Devices & services > *Add integration* > search **Rabot Energy**.
 
 | Field | Value |
 | --- | --- |
-| Contract number | From Services > Home Assistant Integration in the Rabot app |
 | Access token | The token you created in the app (required) |
+| Contract number (optional) | From the same page in the app. Leave empty to take it from the token |
 | Advanced settings > Server address | Pre-filled; change it only for a test environment |
 
 The integration tests the settings with one request before saving. On success you get a device
-*Rabot &lt;contract number&gt;* with the four sensors. Repeat this step for every further contract.
+*Rabot &lt;contract number&gt;* with the price sensors. Repeat this step for every further contract.
 
 ### 5. Use the price in the Energy dashboard (optional)
 
@@ -97,7 +97,8 @@ with current price* > pick the *Current price* sensor.
 | --- | --- |
 | This is not a valid token | The token is missing or incomplete. Copy the complete token from the app. |
 | The token was rejected | The token has expired, was deleted, or belongs to another contract. A token cannot be shown again, so create a new one in the app. |
-| The server did not find this contract | Check the contract number. If you changed the server address, check that it is for the right environment. |
+| The contract number does not belong to this token | The number is for another contract, or the contract has ended. Check it, or leave the field empty. |
+| Enter the contract number shown next to the token | The service did not return the contract; enter the number from the app. |
 | Rabot prices are temporarily unavailable | The service cannot deliver prices right now. Try again later. |
 | Could not reach the server | Home Assistant has no internet connection, or a changed server address is wrong. |
 | Enter a full address that starts with the scheme | Only when you changed the server address: add `http://` or `https://`. |
@@ -239,28 +240,32 @@ And a horizontal line, for example at 40 ct, next to `xaxis` under `apex_config`
 The integration calls one endpoint. You can call it yourself, for example to test a token.
 
 ```
-GET /api/home-assistant-service/v1/energy-prices/average?contractNumber=<contract number>
+GET https://api.rabot-charge.de/api/home-assistant-service/v1/energy-prices/average[?contractNumber=<contract number>]
 Authorization: Bearer <token>
 ```
 
+The token identifies the contract. `contractNumber` is optional; when sent, it must be the token's
+contract (otherwise `404`).
+
 ```shell
 curl -H "Authorization: Bearer <token>" \
-  "https://<api host>/api/home-assistant-service/v1/energy-prices/average?contractNumber=<contract number>"
+  "https://api.rabot-charge.de/api/home-assistant-service/v1/energy-prices/average"
 ```
 
 Response (`200`):
 
 ```jsonc
 {
-  "records": [                                       // quarter-hourly
-    { "moment": "2026-10-12T10:00:00Z",              // ISO 8601 date-time, start of the slot
-      "priceGross_inCentPerKwh": { "value": 27.5 } } // null when there is no price
+  "records": [                                       // quarter-hourly, may be empty
+    { "moment": "2026-11-10 13:00",                  // start of the slot, UTC, no zone suffix
+      "priceGross_inCentPerKwh": { "value": 31.25 } } // null when there is no price
   ],
   "baseProviderWorkingPriceGross_inCentPerKwh": { "value": 35.1 },  // may be null
   "priceCap": {                                                     // may be null
     "durationMonths": 12,
     "maxEffectiveWorkingPriceGross_inCentPerKwh": { "value": 40.0 }
-  }
+  },
+  "contractNumber": "1000123456"                    // the token's contract
 }
 ```
 
@@ -270,9 +275,9 @@ All prices are gross, in cent per kWh. Errors use
 | Status | Meaning |
 | --- | --- |
 | 200 | Prices returned |
-| 400 | `contractNumber` missing |
-| 401 | Token invalid, expired, deleted or not for this contract (`EnergyPrices.TokenRejected`) |
-| 404 | Contract not found (`EnergyPrices.NotFound`) |
+| 400 | Invalid request (`Validation.Failed`) |
+| 401 | Token missing, malformed, expired or deleted, or the contract ended (`EnergyPrices.TokenRejected`; no body when the header is malformed) |
+| 404 | `contractNumber` is not the token's contract, or the contract is gone (`EnergyPrices.NotFound`) |
 | 500 | Unexpected error (`Error.Unexpected`) |
 | 503 | Prices temporarily unavailable, retry later (`EnergyPrices.Unavailable`) |
 
@@ -288,9 +293,8 @@ All prices are gross, in cent per kWh. Errors use
 
 ## Known gaps
 
-- Responses without a time zone in `moment` (older format, `2026-10-13 07:30`) are read as **UTC**
-  (`_parse_moment` in `prices.py`).
 - The contract number format is not validated by the config flow.
+- Token expiry is not known in advance; Home Assistant only notices when the service rejects it.
 - Prices are assumed to be in EUR (the schema only says cent).
 - The library is bundled under `_lib` because `rabot-energy` is not on PyPI yet. Before a Home
   Assistant Core submission it must be published and this copy removed.

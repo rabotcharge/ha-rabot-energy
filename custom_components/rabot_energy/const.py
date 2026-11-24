@@ -12,7 +12,6 @@ CONF_CONTRACT_NUMBER = "contract_number"
 UPDATE_INTERVAL = timedelta(minutes=30)
 
 # The public Rabot API host. Users only change it for test environments.
-# TODO: confirm the production host with the backend team before release.
 DEFAULT_HOST = "https://api.rabot-charge.de"
 
 # Entries created before the host became a setting were configured against this host.

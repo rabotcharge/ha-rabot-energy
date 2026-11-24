@@ -98,6 +98,16 @@ def test_parse_empty_preview() -> None:
     assert prices.parse_slots(_preview()) == []
 
 
+def test_empty_records_give_no_slot_and_do_not_raise() -> None:
+    """A contract without prices is a valid 200 with no records; sensors show unknown."""
+    slots = prices.parse_slots(_preview())
+    now = at(10)
+    assert prices.current_slot(slots, now) is None
+    assert prices.next_slot(slots, now) is None
+    assert prices.lowest_slot(slots, now) is None
+    assert prices.highest_slot(slots, now) is None
+
+
 def test_parse_time_without_zone_is_utc() -> None:
     """The service sends "2026-10-13 07:30" without a zone; it is read as UTC."""
     slots = prices.parse_slots(

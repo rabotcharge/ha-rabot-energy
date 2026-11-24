@@ -3,14 +3,14 @@
     "step": {
       "user": {
         "title": "Rabot-Vertrag verbinden",
-        "description": "Gib deine Vertragsnummer und ein Zugriffstoken ein. Ein Token erstellst du in der Rabot-App unter Services > Home Assistant Integration. Es wird nur einmal angezeigt, direkt nach dem Erstellen.",
+        "description": "Erstelle in der Rabot-App unter Services > Home Assistant Integration ein Zugriffstoken und füge es hier ein. Es wird nur einmal angezeigt, direkt nach dem Erstellen.",
         "data": {
-          "contract_number": "Vertragsnummer",
-          "api_token": "Zugriffstoken"
+          "api_token": "Zugriffstoken",
+          "contract_number": "Vertragsnummer (optional)"
         },
         "data_description": {
-          "contract_number": "Die Vertragsnummer aus der Rabot-App unter Services > Home Assistant Integration.",
-          "api_token": "Das Token aus der Rabot-App. Es ist ein Jahr gültig und funktioniert nur für diesen Vertrag."
+          "api_token": "Das Token aus der Rabot-App. Es ist ein Jahr gültig und funktioniert nur für diesen Vertrag.",
+          "contract_number": "Die Vertragsnummer von derselben Seite in der Rabot-App. Leer lassen, um sie aus dem Token zu übernehmen."
         },
         "sections": {
           "advanced": {
@@ -51,11 +51,12 @@
     "error": {
       "cannot_connect": "Der Server ist nicht erreichbar. Prüfe deine Netzwerkverbindung und, falls geändert, die Serveradresse.",
       "invalid_auth": "Das Token wurde abgelehnt. Es ist vielleicht abgelaufen, gelöscht oder gehört zu einem anderen Vertrag. Erstelle ein neues Token in der Rabot-App.",
-      "contract_not_found": "Der Server hat diesen Vertrag nicht gefunden. Prüfe Vertragsnummer und Serveradresse.",
+      "contract_not_found": "Die Vertragsnummer gehört nicht zu diesem Token, oder den Vertrag gibt es nicht mehr. Prüfe die Nummer oder lass sie leer.",
       "unknown": "Unerwarteter Fehler. Prüfe die Protokolle.",
       "invalid_host": "Gib eine vollständige Adresse ein, die mit dem Schema (http oder https) beginnt.",
       "invalid_token": "Das ist kein gültiges Token. Kopiere das vollständige Token aus der Rabot-App.",
-      "service_unavailable": "Die Rabot-Preise sind vorübergehend nicht verfügbar. Versuche es später erneut."
+      "service_unavailable": "Die Rabot-Preise sind vorübergehend nicht verfügbar. Versuche es später erneut.",
+      "contract_number_required": "Gib die Vertragsnummer ein, die in der Rabot-App neben dem Token steht."
     },
     "abort": {
       "already_configured": "Dieser Vertrag ist bereits eingerichtet.",

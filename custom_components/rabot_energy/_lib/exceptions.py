@@ -16,7 +16,7 @@ class RabotAuthError(RabotError):
 
 
 class RabotContractNotFoundError(RabotError):
-    """The contract does not exist or is not visible to this token (HTTP 404)."""
+    """The contract does not exist or does not belong to this token (HTTP 404)."""
 
 
 class RabotRateLimitError(RabotError):

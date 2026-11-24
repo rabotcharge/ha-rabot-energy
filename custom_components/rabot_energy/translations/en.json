@@ -3,14 +3,14 @@
     "step": {
       "user": {
         "title": "Connect your Rabot contract",
-        "description": "Enter your contract number and an access token. Create a token in the Rabot app under Services > Home Assistant Integration. It is shown only once, right after you create it.",
+        "description": "Create an access token in the Rabot app under Services > Home Assistant Integration and paste it here. It is shown only once, right after you create it.",
         "data": {
-          "contract_number": "Contract number",
-          "api_token": "Access token"
+          "api_token": "Access token",
+          "contract_number": "Contract number (optional)"
         },
         "data_description": {
-          "contract_number": "The contract number shown in the Rabot app under Services > Home Assistant Integration.",
-          "api_token": "The token from the Rabot app. It is valid for one year and works only for this contract."
+          "api_token": "The token from the Rabot app. It is valid for one year and works only for this contract.",
+          "contract_number": "The contract number from the same page in the Rabot app. Leave empty to take it from the token."
         },
         "sections": {
           "advanced": {
@@ -51,11 +51,12 @@
     "error": {
       "cannot_connect": "Could not reach the server. Check your network connection and, if you changed it, the server address.",
       "invalid_auth": "The token was rejected. It may have expired or been deleted, or belong to another contract. Create a new token in the Rabot app.",
-      "contract_not_found": "The server did not find this contract. Check the contract number and the server address.",
+      "contract_not_found": "The contract number does not belong to this token, or the contract no longer exists. Check the number, or leave it empty.",
       "unknown": "Unexpected error. Check the logs.",
       "invalid_host": "Enter a full address that starts with the scheme (http or https).",
       "invalid_token": "This is not a valid token. Copy the complete token from the Rabot app.",
-      "service_unavailable": "Rabot prices are temporarily unavailable. Try again later."
+      "service_unavailable": "Rabot prices are temporarily unavailable. Try again later.",
+      "contract_number_required": "Enter the contract number shown next to the token in the Rabot app."
     },
     "abort": {
       "already_configured": "This contract is already set up.",

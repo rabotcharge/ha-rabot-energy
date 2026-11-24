@@ -25,7 +25,7 @@ def _retry_after(response: ClientResponse) -> int | None:
 
 
 async def _problem(response: ClientResponse) -> str:
-    """Return " (<title>: <detail>)" from an RFC 9457 ProblemDetails body, or "".
+    """Return " (<title>: <detail>, traceId <id>)" from a ProblemDetails body, or "".
 
     Error bodies are optional and may be empty or not JSON, so this never raises.
     """
@@ -36,7 +36,10 @@ async def _problem(response: ClientResponse) -> str:
     if not isinstance(data, dict):
         return ""
     parts = [str(data[key]) for key in ("title", "detail") if data.get(key)]
-    return f" ({': '.join(parts)})" if parts else ""
+    text = ": ".join(parts)
+    if trace_id := data.get("traceId"):
+        text = f"{text}, traceId {trace_id}" if text else f"traceId {trace_id}"
+    return f" ({text})" if text else ""
 
 
 class RabotEnergyApi:
@@ -46,11 +49,14 @@ class RabotEnergyApi:
         """Store the auth object used for all requests."""
         self._auth = auth
 
-    async def async_get_price_preview(self, contract_number: str) -> PricePreview:
-        """Return the price preview (up to 72 hours) for a contract."""
-        response = await self._auth.request(
-            "get", PRICES_PATH, params={"contractNumber": contract_number}
-        )
+    async def async_get_price_preview(self, contract_number: str | None = None) -> PricePreview:
+        """Return the price preview (up to 72 hours) for the token's contract.
+
+        The token identifies the contract. When `contract_number` is given, the service
+        checks it belongs to the token and answers 404 otherwise.
+        """
+        params = {"contractNumber": contract_number} if contract_number else None
+        response = await self._auth.request("get", PRICES_PATH, params=params)
         try:
             await self._raise_for_status(response)
             try:

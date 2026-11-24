@@ -1,8 +1,9 @@
 """Data models.
 
 They mirror the API response (GET .../energy-prices/average?contractNumber=...) and do no
-conversion: the moment stays a string (an ISO 8601 date-time) and prices stay in cent per
-kWh, exactly as sent. Time zones, slot lengths and unit changes are the integration's job.
+conversion: the moment stays a string (UTC, "yyyy-MM-dd HH:mm", for example
+"2026-11-10 13:00") and prices stay in cent per kWh, exactly as sent. Time zones, slot
+lengths and unit changes are the integration's job.
 """
 
 from __future__ import annotations
@@ -47,6 +48,12 @@ class PricePreview:
     def records(self) -> list[PriceRecord]:
         """Return all records in the order the API sent them."""
         return [PriceRecord(item) for item in self.raw_data["records"]]
+
+    @property
+    def contract_number(self) -> str | None:
+        """Return the contract the prices belong to (the token's contract), if sent."""
+        value = self.raw_data.get("contractNumber")
+        return None if value is None else str(value)
 
     @property
     def price_cap_duration_in_months(self) -> int | None:

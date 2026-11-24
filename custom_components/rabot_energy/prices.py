@@ -43,11 +43,10 @@ class PriceData:
 
 
 def _parse_moment(value: str) -> datetime:
-    """Parse an ISO 8601 date-time such as "2026-10-13T07:30:00Z".
+    """Parse a moment such as "2026-11-10 13:00".
 
-    Timestamps that carry a zone are taken as they are. Older responses sent no zone
-    ("2026-10-13 07:30"); those are read as UTC, which the data backs up (a day's last
-    record is "21:45", which is 23:45 in Berlin summer time).
+    The service sends UTC without a zone suffix, so a naive value is read as UTC.
+    Timestamps that do carry a zone are taken as they are.
     """
     parsed = datetime.fromisoformat(value)
     if parsed.tzinfo is None:

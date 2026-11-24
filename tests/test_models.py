@@ -28,22 +28,23 @@ prices = _load("rabot_prices_for_models", _ROOT / "prices.py")
 # Shape of GetAverageEnergyPricesResponse from the service spec.
 RESPONSE = {
     "records": [
-        {"moment": "2026-10-12T10:00:00Z", "priceGross_inCentPerKwh": {"value": 27.5}},
-        {"moment": "2026-10-12T10:15:00Z", "priceGross_inCentPerKwh": None},
-        {"moment": "2026-10-12T10:30:00Z", "priceGross_inCentPerKwh": {"value": 30}},
+        {"moment": "2026-10-12 10:00", "priceGross_inCentPerKwh": {"value": 27.5}},
+        {"moment": "2026-10-12 10:15", "priceGross_inCentPerKwh": None},
+        {"moment": "2026-10-12 10:30", "priceGross_inCentPerKwh": {"value": 30}},
     ],
     "baseProviderWorkingPriceGross_inCentPerKwh": {"value": 35.1},
     "priceCap": {
         "durationMonths": 12,
         "maxEffectiveWorkingPriceGross_inCentPerKwh": {"value": 40.0},
     },
+    "contractNumber": "1000123456",
 }
 
 
 def test_record_price_is_nullable() -> None:
     records = models.PricePreview(RESPONSE).records
     assert [r.price_gross_in_cent_per_kwh for r in records] == [27.5, None, 30.0]
-    assert records[0].moment == "2026-10-12T10:00:00Z"
+    assert records[0].moment == "2026-10-12 10:00"
 
 
 def test_record_price_with_null_value() -> None:
@@ -103,3 +104,26 @@ def test_parse_preview_without_cap() -> None:
     assert data.price_cap_gross is None
     assert data.price_cap_duration_months is None
     assert data.base_provider_gross is None
+
+
+def test_contract_number_from_response() -> None:
+    assert models.PricePreview(RESPONSE).contract_number == "1000123456"
+    # null from older service releases
+    assert models.PricePreview({"records": [], "contractNumber": None}).contract_number is None
+    assert models.PricePreview({"records": []}).contract_number is None
+
+
+def test_backend_fixture_parses_as_utc() -> None:
+    """The exact 200 fixture of the service: UTC moment without a zone, null extras."""
+    fixture = {
+        "records": [{"moment": "2026-11-10 13:00", "priceGross_inCentPerKwh": {"value": 31.25}}],
+        "baseProviderWorkingPriceGross_inCentPerKwh": None,
+        "priceCap": None,
+        "contractNumber": "1000123456",
+    }
+    data = prices.parse_preview(models.PricePreview(fixture))
+    assert data.slots[0].start == datetime(2026, 11, 10, 13, 0, tzinfo=UTC)
+    assert data.slots[0].end == datetime(2026, 11, 10, 13, 15, tzinfo=UTC)
+    assert data.slots[0].gross == pytest.approx(0.3125)
+    assert data.base_provider_gross is None
+    assert data.price_cap_gross is None
