@@ -24,6 +24,7 @@ from homeassistant.util import dt as dt_util
 from .const import DOMAIN
 from .coordinator import RabotConfigEntry, RabotCoordinator
 from .prices import (
+    PriceData,
     PriceSlot,
     current_slot,
     highest_slot,
@@ -63,6 +64,45 @@ SENSORS: tuple[RabotSensorDescription, ...] = (
 )
 
 
+@dataclass(frozen=True, kw_only=True)
+class RabotContractSensorDescription(SensorEntityDescription):
+    """Describe a contract-level price (not tied to a slot)."""
+
+    value_fn: Callable[[PriceData], float | None]
+    attrs_fn: Callable[[PriceData], dict[str, Any] | None] = lambda _data: None
+
+
+CONTRACT_SENSORS: tuple[RabotContractSensorDescription, ...] = (
+    RabotContractSensorDescription(
+        key="base_provider_price",
+        translation_key="base_provider_price",
+        entity_registry_enabled_default=False,
+        value_fn=lambda data: data.base_provider_gross,
+    ),
+    RabotContractSensorDescription(
+        key="price_cap",
+        translation_key="price_cap",
+        entity_registry_enabled_default=False,
+        value_fn=lambda data: data.price_cap_gross,
+        attrs_fn=lambda data: (
+            None
+            if data.price_cap_duration_months is None
+            else {"duration_months": data.price_cap_duration_months}
+        ),
+    ),
+)
+
+
+def _device_info(contract_number: str) -> DeviceInfo:
+    """Return the device shared by all sensors of one contract."""
+    return DeviceInfo(
+        identifiers={(DOMAIN, contract_number)},
+        name=f"Rabot {contract_number}",
+        manufacturer="Rabot Energy",
+        entry_type=DeviceEntryType.SERVICE,
+    )
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: RabotConfigEntry,
@@ -76,7 +116,15 @@ async def async_setup_entry(
         "sensor", DOMAIN, f"{coordinator.contract_number}_current_price_net"
     ):
         registry.async_remove(stale)
-    async_add_entities(RabotPriceSensor(coordinator, description) for description in SENSORS)
+    async_add_entities(
+        [
+            *(RabotPriceSensor(coordinator, description) for description in SENSORS),
+            *(
+                RabotContractPriceSensor(coordinator, description)
+                for description in CONTRACT_SENSORS
+            ),
+        ]
+    )
 
 
 class RabotPriceSensor(CoordinatorEntity[RabotCoordinator], SensorEntity):
@@ -95,12 +143,7 @@ class RabotPriceSensor(CoordinatorEntity[RabotCoordinator], SensorEntity):
         super().__init__(coordinator)
         self.entity_description = description
         self._attr_unique_id = f"{coordinator.contract_number}_{description.key}"
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, coordinator.contract_number)},
-            name=f"Rabot {coordinator.contract_number}",
-            manufacturer="Rabot Energy",
-            entry_type=DeviceEntryType.SERVICE,
-        )
+        self._attr_device_info = _device_info(coordinator.contract_number)
 
     async def async_added_to_hass(self) -> None:
         """Re-evaluate at every quarter hour from cached data, without calling the API."""
@@ -118,7 +161,7 @@ class RabotPriceSensor(CoordinatorEntity[RabotCoordinator], SensorEntity):
 
     def _slot(self) -> PriceSlot | None:
         """Return the slot this sensor reports, based on the current time."""
-        return self.entity_description.slot_fn(self.coordinator.data, dt_util.utcnow())
+        return self.entity_description.slot_fn(self.coordinator.data.slots, dt_util.utcnow())
 
     @property
     def native_value(self) -> float | None:
@@ -140,7 +183,7 @@ class RabotPriceSensor(CoordinatorEntity[RabotCoordinator], SensorEntity):
                         "end": slot.end.isoformat(),
                         "price": slot.gross,
                     }
-                    for slot in self.coordinator.data
+                    for slot in self.coordinator.data.slots
                 ]
             }
         if not description.with_period:
@@ -149,3 +192,31 @@ class RabotPriceSensor(CoordinatorEntity[RabotCoordinator], SensorEntity):
         if slot is None:
             return None
         return {"start": slot.start.isoformat(), "end": slot.end.isoformat()}
+
+
+class RabotContractPriceSensor(CoordinatorEntity[RabotCoordinator], SensorEntity):
+    """A contract-level price from the response (base provider price, price cap)."""
+
+    entity_description: RabotContractSensorDescription
+    _attr_has_entity_name = True
+    _attr_native_unit_of_measurement = PRICE_UNIT
+    _attr_suggested_display_precision = 4
+
+    def __init__(
+        self, coordinator: RabotCoordinator, description: RabotContractSensorDescription
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self.entity_description = description
+        self._attr_unique_id = f"{coordinator.contract_number}_{description.key}"
+        self._attr_device_info = _device_info(coordinator.contract_number)
+
+    @property
+    def native_value(self) -> float | None:
+        """Return the price, or None when the response has none."""
+        return self.entity_description.value_fn(self.coordinator.data)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Return extra details, such as the price cap duration."""
+        return self.entity_description.attrs_fn(self.coordinator.data)

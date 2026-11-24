@@ -3,26 +3,36 @@
     "step": {
       "user": {
         "title": "Connect your Rabot contract",
-        "description": "Enter the address of the Rabot service, your contract number and, if the service needs one, an access token.",
+        "description": "Create an access token in the Rabot app under Services > Home Assistant Integration and paste it here. It is shown only once, right after you create it.",
         "data": {
-          "host": "Server address",
-          "contract_number": "Contract number",
-          "api_token": "Access token (optional)"
+          "api_token": "Access token",
+          "contract_number": "Contract number (optional)"
         },
         "data_description": {
-          "host": "Server address including the scheme (http or https) and the port. It can be changed later with Reconfigure.",
-          "contract_number": "The contract number shown in the Rabot app.",
-          "api_token": "A long-lived token created in the Rabot app. Leave empty if the server needs none."
+          "api_token": "The token from the Rabot app. It is valid for one year and works only for this contract.",
+          "contract_number": "The contract number from the same page in the Rabot app. Leave empty to take it from the token."
+        },
+        "sections": {
+          "advanced": {
+            "name": "Advanced settings",
+            "description": "Only change the server address for test environments.",
+            "data": {
+              "host": "Server address"
+            },
+            "data_description": {
+              "host": "Server address including the scheme (http or https) and, if needed, the port."
+            }
+          }
         }
       },
       "reauth_confirm": {
         "title": "Rabot token needs renewal",
-        "description": "The token for contract {contract_number} was rejected. Enter a new token from the Rabot app.",
+        "description": "The token for contract {contract_number} was rejected, has expired or was deleted, or none is stored yet. Create a new token in the Rabot app under Services > Home Assistant Integration and paste it here.",
         "data": {
           "api_token": "Access token"
         },
         "data_description": {
-          "api_token": "A new long-lived token created in the Rabot app."
+          "api_token": "A new token from the Rabot app. It is shown only once, right after you create it."
         }
       },
       "reconfigure": {
@@ -30,20 +40,23 @@
         "description": "Change the server address for contract {contract_number}. Leave the token empty to keep the current one.",
         "data": {
           "host": "Server address",
-          "api_token": "Access token (optional)"
+          "api_token": "Access token (only to replace it)"
         },
         "data_description": {
           "host": "Server address including the scheme (http or https) and, if needed, the port.",
-          "api_token": "Only needed to replace the stored token."
+          "api_token": "A new token from the Rabot app. Leave empty to keep the stored token."
         }
       }
     },
     "error": {
-      "cannot_connect": "Could not reach the server. Check the address and your network connection.",
-      "invalid_auth": "The token was rejected. Check that you copied it completely.",
-      "contract_not_found": "The server did not find this contract. Check the contract number and the server address.",
+      "cannot_connect": "Could not reach the server. Check your network connection and, if you changed it, the server address.",
+      "invalid_auth": "The token was rejected. It may have expired or been deleted, or belong to another contract. Create a new token in the Rabot app.",
+      "contract_not_found": "The contract number does not belong to this token, or the contract no longer exists. Check the number, or leave it empty.",
       "unknown": "Unexpected error. Check the logs.",
-      "invalid_host": "Enter a full address that starts with the scheme (http or https)."
+      "invalid_host": "Enter a full address that starts with the scheme (http or https).",
+      "invalid_token": "This is not a valid token. Copy the complete token from the Rabot app.",
+      "service_unavailable": "Rabot prices are temporarily unavailable. Try again later.",
+      "contract_number_required": "Enter the contract number shown next to the token in the Rabot app."
     },
     "abort": {
       "already_configured": "This contract is already set up.",
@@ -64,6 +77,17 @@
       },
       "highest_price": {
         "name": "Highest upcoming price"
+      },
+      "base_provider_price": {
+        "name": "Base provider price"
+      },
+      "price_cap": {
+        "name": "Price cap",
+        "state_attributes": {
+          "duration_months": {
+            "name": "Duration (months)"
+          }
+        }
       }
     }
   }

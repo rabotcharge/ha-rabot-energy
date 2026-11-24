@@ -14,14 +14,15 @@ from ._lib import (
     RabotContractNotFoundError,
     RabotEnergyApi,
     RabotRateLimitError,
+    RabotServiceUnavailableError,
 )
 from .const import CONF_CONTRACT_NUMBER, DOMAIN, LOGGER, UPDATE_INTERVAL
-from .prices import PriceSlot, parse_slots
+from .prices import PriceData, parse_preview
 
 type RabotConfigEntry = ConfigEntry[RabotCoordinator]
 
 
-class RabotCoordinator(DataUpdateCoordinator[list[PriceSlot]]):
+class RabotCoordinator(DataUpdateCoordinator[PriceData]):
     """Poll the price preview for one contract."""
 
     config_entry: RabotConfigEntry
@@ -38,15 +39,17 @@ class RabotCoordinator(DataUpdateCoordinator[list[PriceSlot]]):
         self._api = api
         self.contract_number: str = entry.data[CONF_CONTRACT_NUMBER]
 
-    async def _async_update_data(self) -> list[PriceSlot]:
+    async def _async_update_data(self) -> PriceData:
         """Fetch and parse the preview."""
         try:
             preview = await self._api.async_get_price_preview(self.contract_number)
-            return parse_slots(preview)
+            return parse_preview(preview)
         except RabotAuthError as err:
             raise ConfigEntryAuthFailed("The Rabot token was rejected") from err
         except RabotContractNotFoundError as err:
             raise UpdateFailed("The Rabot contract was not found") from err
+        except RabotServiceUnavailableError as err:
+            raise UpdateFailed("Rabot prices are temporarily unavailable") from err
         except RabotRateLimitError as err:
             raise UpdateFailed("Rabot rate limit reached, will retry later") from err
         except (RabotConnectionError, RabotApiError) as err:

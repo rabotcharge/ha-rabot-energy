@@ -1,8 +1,7 @@
 # Rabot Energy for Home Assistant
 
 Shows your Rabot Energy electricity price preview (up to 72 hours ahead) in Home Assistant, for
-one contract per entry. Built on the service endpoint
-`GET /api/home-assistant-service/v1/energy-prices/average?contractNumber=...` (see "Known gaps").
+one contract per entry. Built on the Rabot Home Assistant service (see "API reference").
 
 ## What you get
 
@@ -14,9 +13,14 @@ One device per contract with these sensors (unit `EUR/kWh`):
 | Next price | Gross price of the next slot |
 | Lowest upcoming price | Cheapest current-or-later slot; attributes `start`, `end` |
 | Highest upcoming price | Most expensive current-or-later slot; attributes `start`, `end` |
+| Base provider price | Gross working price of the base provider, if sent (disabled by default) |
+| Price cap | Gross price cap, if the contract has one; attribute `duration_months` (disabled by default) |
 
-The API sends gross prices only, in cent per kWh, with one `moment` per record; the integration
-converts them to EUR/kWh and derives each slot's end from the next record. The current price follows
+Enable the disabled sensors under Settings > Devices & services > Rabot Energy > your device.
+
+The API sends gross prices only, in cent per kWh, with one `moment` per quarter hour; the
+integration converts them to EUR/kWh and derives each slot's end from the next record. A quarter
+hour without a price is left out (no state for that slot). The current price follows
 the slot boundaries from cached data, without another API call. The service is polled every
 30 minutes.
 
@@ -29,13 +33,26 @@ You need:
 - **Home Assistant 2026.3.0 or newer.**
 - **HACS** installed ([hacs.xyz/docs/use](https://hacs.xyz/docs/use/)), or access to the
   `config` folder for a manual install.
-- Your **contract number**, shown in the Rabot app.
-- The **server address** of the Rabot service, including the scheme and, if needed, the port (for
-  example `https://api.example.com` or `http://10.0.0.5:8012`). It must be reachable from Home
-  Assistant.
-- An **access token**, only if the server needs one: a long-lived token created in the Rabot app.
+- The **Rabot app**, updated to the latest version.
+- Your **contract number** and an **access token**, both from **Services > Home Assistant
+  Integration** in the Rabot app (see the next step).
 
-### 2. Install the integration
+### 2. Get your token
+
+1. Open the Rabot app and select the contract in the contract switcher.
+2. Go to **Services > Home Assistant Integration**.
+3. Tap **Create token**. Copy the token right away (*Copy token*): it is shown in full **only
+   once**. Afterwards the app shows only a masked version.
+4. Copy the **contract number** from the same page.
+
+Good to know:
+
+- A token is valid for **one year**. Plan to create a new one before it expires.
+- A contract can have up to **five** active tokens, for example one per Home Assistant instance.
+- Deleting a token in the app stops Home Assistant's access immediately.
+- A token works only for the contract it was created for, and identifies that contract on its own.
+
+### 3. Install the integration
 
 **With HACS (recommended)**
 
@@ -54,7 +71,7 @@ Or by hand:
    `custom_components` folder of your Home Assistant `config` folder (create it if missing).
 2. Restart Home Assistant.
 
-### 3. Add your contract
+### 4. Add your contract
 
 [![Add integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=rabot_energy)
 
@@ -62,14 +79,14 @@ Or: Settings > Devices & services > *Add integration* > search **Rabot Energy**.
 
 | Field | Value |
 | --- | --- |
-| Server address | Full address with `http://` or `https://`, without a trailing path |
-| Contract number | As shown in the Rabot app |
-| Access token (optional) | Leave empty if the server needs none |
+| Access token | The token you created in the app (required) |
+| Contract number (optional) | From the same page in the app. Leave empty to take it from the token |
+| Advanced settings > Server address | Pre-filled; change it only for a test environment |
 
 The integration tests the settings with one request before saving. On success you get a device
-*Rabot &lt;contract number&gt;* with the four sensors. Repeat this step for every further contract.
+*Rabot &lt;contract number&gt;* with the price sensors. Repeat this step for every further contract.
 
-### 4. Use the price in the Energy dashboard (optional)
+### 5. Use the price in the Energy dashboard (optional)
 
 Settings > Dashboards > *Energy* > *Electricity grid* > edit your grid consumption > *Use an entity
 with current price* > pick the *Current price* sensor.
@@ -78,22 +95,27 @@ with current price* > pick the *Current price* sensor.
 
 | Message | Fix |
 | --- | --- |
-| Enter a full address that starts with the scheme | Add `http://` or `https://` in front of the address. |
-| Could not reach the server | Wrong address or port, or the server is not reachable from Home Assistant (firewall, VPN, DNS). |
-| The token was rejected | Create a new token in the Rabot app and paste it completely. |
-| The server did not find this contract | Check the contract number, and that the server address is for the right environment. |
+| This is not a valid token | The token is missing or incomplete. Copy the complete token from the app. |
+| The token was rejected | The token has expired, was deleted, or belongs to another contract. A token cannot be shown again, so create a new one in the app. |
+| The contract number does not belong to this token | The number is for another contract, or the contract has ended. Check it, or leave the field empty. |
+| Enter the contract number shown next to the token | The service did not return the contract; enter the number from the app. |
+| Rabot prices are temporarily unavailable | The service cannot deliver prices right now. Try again later. |
+| Could not reach the server | Home Assistant has no internet connection, or a changed server address is wrong. |
+| Enter a full address that starts with the scheme | Only when you changed the server address: add `http://` or `https://`. |
 | This contract is already set up | Each contract can be added once; use *Reconfigure* to change it. |
 | Unexpected error | Check Settings > System > Logs for `rabot_energy`. |
 
 ### Later changes
 
-- **Other server or token:** Settings > Devices & services > Rabot Energy > three-dot menu of the
+- **Expired, deleted or revoked token:** Home Assistant shows a *Reauthenticate* notice at the next
+  update (within 30 minutes; *Reload* the entry to check right away). Create a new token in the app
+  and paste it. Tokens expire after one year.
+- **Other token or server:** Settings > Devices & services > Rabot Energy > three-dot menu of the
   entry > *Reconfigure*. An empty token field keeps the stored token. No need to delete the entry.
-- **Expired or revoked token:** Home Assistant shows a *Reauthenticate* notice; enter a new token
-  from the Rabot app.
-- **Update:** HACS shows new versions; download and restart Home Assistant.
+- **Update:** HACS shows new versions; download and restart Home Assistant. Entries set up without
+  a token by an older version ask for one after the update.
 - **Remove:** delete the entry in Settings > Devices & services, then remove the integration in
-  HACS and restart.
+  HACS and restart. Delete the token in the app as well.
 
 ## Show the prices in a chart
 
@@ -213,6 +235,52 @@ And a horizontal line, for example at 40 ct, next to `xaxis` under `apex_config`
 | Prices look 100 times too small | Missing `* 100`; the sensor reports EUR/kWh. |
 | No new data after a while | The service is polled every 30 minutes; check Settings > Devices & services > Rabot Energy for errors or a reauthentication request. |
 
+## API reference
+
+The integration calls one endpoint. You can call it yourself, for example to test a token.
+
+```
+GET https://api.rabot-charge.de/api/home-assistant-service/v1/energy-prices/average[?contractNumber=<contract number>]
+Authorization: Bearer <token>
+```
+
+The token identifies the contract. `contractNumber` is optional; when sent, it must be the token's
+contract (otherwise `404`).
+
+```shell
+curl -H "Authorization: Bearer <token>" \
+  "https://api.rabot-charge.de/api/home-assistant-service/v1/energy-prices/average"
+```
+
+Response (`200`):
+
+```jsonc
+{
+  "records": [                                       // quarter-hourly, may be empty
+    { "moment": "2026-11-10 13:00",                  // start of the slot, UTC, no zone suffix
+      "priceGross_inCentPerKwh": { "value": 31.25 } } // null when there is no price
+  ],
+  "baseProviderWorkingPriceGross_inCentPerKwh": { "value": 35.1 },  // may be null
+  "priceCap": {                                                     // may be null
+    "durationMonths": 12,
+    "maxEffectiveWorkingPriceGross_inCentPerKwh": { "value": 40.0 }
+  },
+  "contractNumber": "1000123456"                    // the token's contract
+}
+```
+
+All prices are gross, in cent per kWh. Errors use
+[RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) problem details; `title` holds the error code.
+
+| Status | Meaning |
+| --- | --- |
+| 200 | Prices returned |
+| 400 | Invalid request (`Validation.Failed`) |
+| 401 | Token missing, malformed, expired or deleted, or the contract ended (`EnergyPrices.TokenRejected`; no body when the header is malformed) |
+| 404 | `contractNumber` is not the token's contract, or the contract is gone (`EnergyPrices.NotFound`) |
+| 500 | Unexpected error (`Error.Unexpected`) |
+| 503 | Prices temporarily unavailable, retry later (`EnergyPrices.Unavailable`) |
+
 ## Design
 
 - API code lives in the `_lib` package (a copy of the separate `rabot-energy` library, repo
@@ -220,35 +288,26 @@ And a horizontal line, for example at 40 ct, next to `xaxis` under `apex_config`
   Assistant Core requires. The library mirrors the API and converts nothing.
 - All conversion and derived values live in `custom_components/rabot_energy/prices.py`, which has no
   Home Assistant imports and is unit-tested on its own.
-- The config entry stores the server address, the contract number and the optional token. The
-  address is a setting, not a constant, because it differs per environment.
+- The config entry stores the server address, the contract number and the token. The address is
+  pre-filled with the public host but stays a setting, so test environments can use another one.
 
 ## Known gaps
 
-- The response has one `moment` per record and no slot length. The integration derives it from the
-  spacing of the records (15 minutes in the samples) and assumes one hour only when there is a single
-  record (`prices.py`).
-- `moment` has no time zone (`2026-10-13 07:30`). The integration reads it as **UTC**; the data
-  supports that (a day's last record is `21:45`, which is 23:45 Berlin time). To be confirmed with the
-  backend team; the only place to change is `_parse_moment` in `prices.py`.
-- The sample request sends no token, so the token is optional. Bearer auth was confirmed against the
-  earlier test API only. The public service will probably need a token.
-- `priceCap` (null in the samples) and the base provider working price are parsed by the library but
-  not exposed as sensors yet.
 - The contract number format is not validated by the config flow.
+- Token expiry is not known in advance; Home Assistant only notices when the service rejects it.
 - Prices are assumed to be in EUR (the schema only says cent).
 - The library is bundled under `_lib` because `rabot-energy` is not on PyPI yet. Before a Home
   Assistant Core submission it must be published and this copy removed.
 - No config-flow tests yet (they need `pytest-homeassistant-custom-component`, which needs the
-  Python version of the current Home Assistant release), no diagnostics, no `get_prices` action,
-  no logo image (only the icon is in `custom_components/rabot_energy/brand/`).
+  Python version of the current Home Assistant release), no `get_prices` action, no logo image
+  (only the icon is in `custom_components/rabot_energy/brand/`).
 - `codeowners` in `manifest.json` is empty.
 
 ## Development
 
 ```shell
 pip install -r requirements_test.txt
-pytest          # price logic tests, no Home Assistant needed
+pytest          # price and model tests, no Home Assistant needed
 ```
 
 ## Licence

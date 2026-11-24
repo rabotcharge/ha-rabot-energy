@@ -9,6 +9,7 @@ from .exceptions import (
     RabotContractNotFoundError,
     RabotError,
     RabotRateLimitError,
+    RabotServiceUnavailableError,
 )
 from .models import PricePreview, PriceRecord
 
@@ -23,4 +24,5 @@ __all__ = [
     "RabotEnergyApi",
     "RabotError",
     "RabotRateLimitError",
+    "RabotServiceUnavailableError",
 ]

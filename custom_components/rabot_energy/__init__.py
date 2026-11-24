@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from homeassistant.const import CONF_API_TOKEN, CONF_HOST, Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from ._lib import Auth, RabotEnergyApi
@@ -15,11 +16,10 @@ PLATFORMS: list[Platform] = [Platform.SENSOR]
 
 async def async_setup_entry(hass: HomeAssistant, entry: RabotConfigEntry) -> bool:
     """Set up Rabot Energy from a config entry."""
-    auth = Auth(
-        async_get_clientsession(hass),
-        entry.data[CONF_HOST],
-        entry.data.get(CONF_API_TOKEN) or None,
-    )
+    # Entries from versions where the token was optional may have none; ask for one.
+    if not (token := entry.data.get(CONF_API_TOKEN)):
+        raise ConfigEntryAuthFailed("An access token is required")
+    auth = Auth(async_get_clientsession(hass), entry.data[CONF_HOST], token)
     coordinator = RabotCoordinator(hass, entry, RabotEnergyApi(auth))
     await coordinator.async_config_entry_first_refresh()
     entry.runtime_data = coordinator

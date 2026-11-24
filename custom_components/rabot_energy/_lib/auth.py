@@ -22,25 +22,19 @@ class Auth:
         self,
         session: ClientSession,
         host: str,
-        token: str | None = None,
+        token: str,
     ) -> None:
-        """Initialize with an injected session, the service host and an optional token.
+        """Initialize with an injected session, the service host and the access token.
 
         `host` is the base URL including the scheme, for example `https://example.org`
-        or `http://10.0.0.5:8012`. Some environments need no token.
+        or `http://10.0.0.5:8012`.
         """
         self._session = session
         self._host = host.rstrip("/")
         self._token = token
 
     def _headers(self) -> dict[str, str]:
-        """Return the authorization headers, empty when there is no token.
-
-        ASSUMPTION: the service takes a bearer token when it needs one. If the real
-        header differs, this is the only place to change.
-        """
-        if not self._token:
-            return {}
+        """Return the authorization header (bearer token)."""
         return {"Authorization": f"Bearer {self._token}"}
 
     async def request(self, method: str, path: str, **kwargs: Any) -> ClientResponse:
